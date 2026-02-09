@@ -122,7 +122,6 @@ java -jar build/libs/be-0.0.1-SNAPSHOT.jar
 ---
 
 ## 📝 향후 개선 방향
-- JWT Refresh Token 적용
 - 테스트 코드 확장
 - CI/CD 파이프라인 구축
 - 대용량 데이터 환경에서의 성능 개선
