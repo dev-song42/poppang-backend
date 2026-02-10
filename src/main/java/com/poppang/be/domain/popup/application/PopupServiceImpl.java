@@ -318,7 +318,7 @@ public class PopupServiceImpl implements PopupService {
       popupImageRepository.saveAll(imageList);
     }
 
-    // popup 이미지 저장
+    // popup 추천 저장
     if (popupRegisterRequestDto.getRecommendIdList() != null
         && !popupRegisterRequestDto.getRecommendIdList().isEmpty()) {
       List<Recommend> found =
