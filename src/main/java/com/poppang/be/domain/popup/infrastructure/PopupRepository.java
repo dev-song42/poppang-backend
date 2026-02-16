@@ -16,6 +16,17 @@ public interface PopupRepository extends JpaRepository<Popup, Long> {
   Optional<Popup> findByUuid(String popupUuid);
 
   @Query(
+      value =
+          """
+            SELECT *
+            FROM popup p
+            ORDER BY p.id DESC
+            LIMIT :limit OFFSET :offset
+            """,
+      nativeQuery = true)
+  List<Popup> findAllByOffsetLimit(@Param("offset") int offset, @Param("limit") int limit);
+
+  @Query(
       """
 
                   select p

@@ -9,6 +9,7 @@ import com.poppang.be.common.util.StringNormalizer;
 import com.poppang.be.domain.favorite.infrastructure.UserFavoriteRepository;
 import com.poppang.be.domain.popup.dto.app.request.PopupImageUpsertRequestDto;
 import com.poppang.be.domain.popup.dto.app.request.PopupRegisterRequestDto;
+import com.poppang.be.domain.popup.dto.app.response.PopupOffsetPageResponseDto;
 import com.poppang.be.domain.popup.dto.app.response.PopupResponseDto;
 import com.poppang.be.domain.popup.dto.app.response.RegionDistrictsResponse;
 import com.poppang.be.domain.popup.entity.MediaType;
@@ -43,6 +44,9 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class PopupServiceImpl implements PopupService {
 
+  private static final int DEFAULT_PAGE_LIMIT = 20;
+  private static final int MAX_PAGE_LIMIT = 100;
+
   private final PopupRepository popupRepository;
   private final PopupImageRepository popupImageRepository;
   private final RecommendRepository recommendRepository;
@@ -59,6 +63,27 @@ public class PopupServiceImpl implements PopupService {
     List<Popup> popupList = popupRepository.findAll();
 
     return popupResponseDtoMapper.toPopupResponseDtoList(popupList);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public PopupOffsetPageResponseDto getPopupPage(int offset, int limit) {
+    int normalizedOffset = Math.max(offset, 0);
+    int normalizedLimit = (limit <= 0) ? DEFAULT_PAGE_LIMIT : Math.min(limit, MAX_PAGE_LIMIT);
+
+    List<Popup> popupList = popupRepository.findAllByOffsetLimit(normalizedOffset, normalizedLimit);
+    List<PopupResponseDto> popupResponseDtoList = popupResponseDtoMapper.toPopupResponseDtoList(popupList);
+
+    long totalCount = popupRepository.count();
+    boolean hasNext = (long) normalizedOffset + popupResponseDtoList.size() < totalCount;
+
+    return PopupOffsetPageResponseDto.builder()
+        .items(popupResponseDtoList)
+        .offset(normalizedOffset)
+        .limit(normalizedLimit)
+        .totalCount(totalCount)
+        .hasNext(hasNext)
+        .build();
   }
 
   @Override

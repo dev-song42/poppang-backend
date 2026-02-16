@@ -1,6 +1,7 @@
 package com.poppang.be.domain.popup.application;
 
 import com.poppang.be.domain.popup.dto.app.request.PopupRegisterRequestDto;
+import com.poppang.be.domain.popup.dto.app.response.PopupOffsetPageResponseDto;
 import com.poppang.be.domain.popup.dto.app.response.PopupResponseDto;
 import com.poppang.be.domain.popup.dto.app.response.RegionDistrictsResponse;
 import com.poppang.be.domain.popup.enums.HomeSortStandard;
@@ -11,6 +12,8 @@ import java.util.List;
 public interface PopupService {
 
   List<PopupResponseDto> getAllPopupList();
+
+  PopupOffsetPageResponseDto getPopupPage(int offset, int limit);
 
   List<PopupResponseDto> getSearchPopupList(String q);
 

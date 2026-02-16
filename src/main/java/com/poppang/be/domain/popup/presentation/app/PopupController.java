@@ -2,6 +2,7 @@ package com.poppang.be.domain.popup.presentation.app;
 
 import com.poppang.be.domain.popup.application.PopupService;
 import com.poppang.be.domain.popup.dto.app.request.PopupRegisterRequestDto;
+import com.poppang.be.domain.popup.dto.app.response.PopupOffsetPageResponseDto;
 import com.poppang.be.domain.popup.dto.app.response.PopupResponseDto;
 import com.poppang.be.domain.popup.dto.app.response.RegionDistrictsResponse;
 import com.poppang.be.domain.popup.enums.HomeSortStandard;
@@ -30,6 +31,18 @@ public class PopupController {
     List<PopupResponseDto> allPopupList = popupService.getAllPopupList();
 
     return ResponseEntity.ok(allPopupList);
+  }
+
+  @Operation(
+      summary = "팝업 오프셋 페이지 조회",
+      description = "offset/limit 기반으로 팝업스토어 정보를 페이지 조회합니다. (비활성화된 팝업 포함)")
+  @GetMapping("/page")
+  public ResponseEntity<PopupOffsetPageResponseDto> getPopupPage(
+      @RequestParam(defaultValue = "0") Integer offset,
+      @RequestParam(defaultValue = "20") Integer limit) {
+    PopupOffsetPageResponseDto popupOffsetPageResponseDto = popupService.getPopupPage(offset, limit);
+
+    return ResponseEntity.ok(popupOffsetPageResponseDto);
   }
 
   @Operation(summary = "팝업 단건 조회", description = "popupUuid로 단건 팝업 조회합니다. ")
