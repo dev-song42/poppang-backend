@@ -2,6 +2,7 @@ package com.poppang.be.domain.popup.presentation.app;
 
 import com.poppang.be.domain.popup.application.PopupService;
 import com.poppang.be.domain.popup.dto.app.request.PopupRegisterRequestDto;
+import com.poppang.be.domain.popup.dto.app.response.PopupCursorPageResponseDto;
 import com.poppang.be.domain.popup.dto.app.response.PopupOffsetPageResponseDto;
 import com.poppang.be.domain.popup.dto.app.response.PopupResponseDto;
 import com.poppang.be.domain.popup.dto.app.response.RegionDistrictsResponse;
@@ -43,6 +44,19 @@ public class PopupController {
     PopupOffsetPageResponseDto popupOffsetPageResponseDto = popupService.getPopupPage(offset, limit);
 
     return ResponseEntity.ok(popupOffsetPageResponseDto);
+  }
+
+  @Operation(
+      summary = "팝업 커서 페이지 조회",
+      description = "cursor(id)/limit 기반으로 팝업스토어 정보를 페이지 조회합니다. (비활성화된 팝업 포함)")
+  @GetMapping("/page/cursor")
+  public ResponseEntity<PopupCursorPageResponseDto> getPopupCursorPage(
+      @RequestParam(required = false) Long cursor,
+      @RequestParam(defaultValue = "20") Integer limit) {
+    PopupCursorPageResponseDto popupCursorPageResponseDto =
+        popupService.getPopupCursorPage(cursor, limit);
+
+    return ResponseEntity.ok(popupCursorPageResponseDto);
   }
 
   @Operation(summary = "팝업 단건 조회", description = "popupUuid로 단건 팝업 조회합니다. ")

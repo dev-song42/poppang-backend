@@ -27,6 +27,29 @@ public interface PopupRepository extends JpaRepository<Popup, Long> {
   List<Popup> findAllByOffsetLimit(@Param("offset") int offset, @Param("limit") int limit);
 
   @Query(
+      value =
+          """
+            SELECT *                 /* popup의 모든 컬럼을 조회한다. */
+            FROM popup p             /* 조회 대상 테이블은 popup이며 별칭은 p를 사용한다. */
+            ORDER BY p.id DESC       /* id 내림차순으로 정렬해 최신 데이터부터 가져온다. */
+            LIMIT :limit             /* 서비스에서 전달한 개수(limit+1 포함)만 조회한다. */
+            """,
+      nativeQuery = true)
+  List<Popup> findAllByLimit(@Param("limit") int limit);
+
+  @Query(
+      value =
+          """
+            SELECT *                 /* popup의 모든 컬럼을 조회한다. */
+            FROM popup p             /* 조회 대상 테이블은 popup이며 별칭은 p를 사용한다. */
+            WHERE p.id < :cursorId   /* 이전 페이지 마지막 id보다 작은 레코드만 조회한다. */
+            ORDER BY p.id DESC       /* id 내림차순으로 정렬해 다음 페이지를 안정적으로 만든다. */
+            LIMIT :limit             /* 서비스에서 전달한 개수(limit+1 포함)만 조회한다. */
+            """,
+      nativeQuery = true)
+  List<Popup> findAllByCursorIdLimit(@Param("cursorId") Long cursorId, @Param("limit") int limit);
+
+  @Query(
       """
 
                   select p

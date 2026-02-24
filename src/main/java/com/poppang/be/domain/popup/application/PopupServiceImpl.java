@@ -9,6 +9,7 @@ import com.poppang.be.common.util.StringNormalizer;
 import com.poppang.be.domain.favorite.infrastructure.UserFavoriteRepository;
 import com.poppang.be.domain.popup.dto.app.request.PopupImageUpsertRequestDto;
 import com.poppang.be.domain.popup.dto.app.request.PopupRegisterRequestDto;
+import com.poppang.be.domain.popup.dto.app.response.PopupCursorPageResponseDto;
 import com.poppang.be.domain.popup.dto.app.response.PopupOffsetPageResponseDto;
 import com.poppang.be.domain.popup.dto.app.response.PopupResponseDto;
 import com.poppang.be.domain.popup.dto.app.response.RegionDistrictsResponse;
@@ -83,6 +84,39 @@ public class PopupServiceImpl implements PopupService {
         .limit(normalizedLimit)
         .totalCount(totalCount)
         .hasNext(hasNext)
+        .build();
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public PopupCursorPageResponseDto getPopupCursorPage(Long cursor, int limit) {
+    Long normalizedCursor = (cursor == null || cursor <= 0) ? null : cursor;
+    int normalizedLimit = (limit <= 0) ? DEFAULT_PAGE_LIMIT : Math.min(limit, MAX_PAGE_LIMIT);
+
+    List<Popup> rawPopupList =
+        (normalizedCursor == null)
+            ? popupRepository.findAllByLimit(normalizedLimit + 1)
+            : popupRepository.findAllByCursorIdLimit(normalizedCursor, normalizedLimit + 1);
+
+    boolean hasNext = rawPopupList.size() > normalizedLimit;
+    List<Popup> pagePopupList = hasNext ? rawPopupList.subList(0, normalizedLimit) : rawPopupList;
+    List<PopupResponseDto> popupResponseDtoList =
+        popupResponseDtoMapper.toPopupResponseDtoList(pagePopupList);
+
+    Long nextCursor =
+        hasNext && !pagePopupList.isEmpty()
+            ? pagePopupList.get(pagePopupList.size() - 1).getId()
+            : null;
+
+    long totalCount = popupRepository.count();
+
+    return PopupCursorPageResponseDto.builder()
+        .items(popupResponseDtoList)
+        .cursor(normalizedCursor)
+        .limit(normalizedLimit)
+        .totalCount(totalCount)
+        .hasNext(hasNext)
+        .nextCursor(nextCursor)
         .build();
   }
 
