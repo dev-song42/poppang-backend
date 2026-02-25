@@ -73,7 +73,8 @@ public class PopupServiceImpl implements PopupService {
     int normalizedLimit = (limit <= 0) ? DEFAULT_PAGE_LIMIT : Math.min(limit, MAX_PAGE_LIMIT);
 
     List<Popup> popupList = popupRepository.findAllByOffsetLimit(normalizedOffset, normalizedLimit);
-    List<PopupResponseDto> popupResponseDtoList = popupResponseDtoMapper.toPopupResponseDtoList(popupList);
+    List<PopupResponseDto> popupResponseDtoList =
+        popupResponseDtoMapper.toPopupResponseDtoList(popupList);
 
     long totalCount = popupRepository.count();
     boolean hasNext = (long) normalizedOffset + popupResponseDtoList.size() < totalCount;

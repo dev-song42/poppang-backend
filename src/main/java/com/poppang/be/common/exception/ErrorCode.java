@@ -37,6 +37,14 @@ public enum ErrorCode {
   POPUP_RECOMMEND_NOT_FOUND(HttpStatus.NOT_FOUND, 4305, "해당 팝업에는 추천 값이 존재하지 않습니다."),
 
   // ==================================================
+  // 4400 ~ 4499 : Popular (인기 팝업)
+  // ==================================================
+  INVALID_POPULAR_CURSOR(HttpStatus.BAD_REQUEST, 4401, "유효하지 않은 인기 팝업 커서입니다."),
+  EXPIRED_POPULAR_CURSOR(HttpStatus.BAD_REQUEST, 4402, "만료된 인기 팝업 커서입니다."),
+  POPULAR_CURSOR_ENCODING_FAILED(
+      HttpStatus.INTERNAL_SERVER_ERROR, 4403, "인기 팝업 커서 인코딩 중 오류가 발생했습니다."),
+
+  // ==================================================
   // 5000 ~ 5099 : Auth / JWT (인증)
   // ==================================================
   INVALID_TOKEN(HttpStatus.UNAUTHORIZED, 5001, "유효하지 않은 토큰입니다."),

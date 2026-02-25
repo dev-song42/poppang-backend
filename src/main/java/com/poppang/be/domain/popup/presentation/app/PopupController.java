@@ -41,7 +41,8 @@ public class PopupController {
   public ResponseEntity<PopupOffsetPageResponseDto> getPopupPage(
       @RequestParam(defaultValue = "0") Integer offset,
       @RequestParam(defaultValue = "20") Integer limit) {
-    PopupOffsetPageResponseDto popupOffsetPageResponseDto = popupService.getPopupPage(offset, limit);
+    PopupOffsetPageResponseDto popupOffsetPageResponseDto =
+        popupService.getPopupPage(offset, limit);
 
     return ResponseEntity.ok(popupOffsetPageResponseDto);
   }

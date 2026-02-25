@@ -6,6 +6,5 @@ import org.springframework.stereotype.Service;
 @Service
 public interface PopularPopupService {
 
-    PopularPageResponse getPopularPopup(int limit, String cursor);
-
+  PopularPageResponse getPopularPopup(int limit, String cursor);
 }
