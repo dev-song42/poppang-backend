@@ -42,12 +42,11 @@ public class PopupTotalViewCountFlushService {
   private static final ZoneId ZONE_ID = ZoneId.of("Asia/Seoul");
 
   public PopupTotalViewCountFlushService(
-          RedisTemplate<String, String> redisTemplate,
-          PopupTotalViewCountRepository popupTotalViewCountRepository,
-          PopupTotalViewFallbackBuffer fallbackBuffer,
-          PopupViewFallbackDeltaJdbcRepository fallbackDeltaRepository,
-          PlatformTransactionManager transactionManager
-  ) {
+      RedisTemplate<String, String> redisTemplate,
+      PopupTotalViewCountRepository popupTotalViewCountRepository,
+      PopupTotalViewFallbackBuffer fallbackBuffer,
+      PopupViewFallbackDeltaJdbcRepository fallbackDeltaRepository,
+      PlatformTransactionManager transactionManager) {
     this.redisTemplate = redisTemplate;
     this.popupTotalViewCountRepository = popupTotalViewCountRepository;
     this.fallbackBuffer = fallbackBuffer;
@@ -59,42 +58,44 @@ public class PopupTotalViewCountFlushService {
   @Transactional
   public void flushDeltas() {
     ScanOptions options =
-            ScanOptions.scanOptions().match(PREFIX + "*" + SUFFIX).count(2000).build();
+        ScanOptions.scanOptions().match(PREFIX + "*" + SUFFIX).count(2000).build();
 
     redisTemplate.execute(
-            (RedisConnection connection) -> {
-              try (Cursor<byte[]> cursor = connection.keyCommands().scan(options)) {
-                while (cursor.hasNext()) {
-                  byte[] keyBytes = cursor.next();
-                  String key = new String(keyBytes, StandardCharsets.UTF_8);
-                  String uuid = key.substring(PREFIX.length(), key.length() - SUFFIX.length());
+        (RedisConnection connection) -> {
+          try (Cursor<byte[]> cursor = connection.keyCommands().scan(options)) {
+            while (cursor.hasNext()) {
+              byte[] keyBytes = cursor.next();
+              String key = new String(keyBytes, StandardCharsets.UTF_8);
+              String uuid = key.substring(PREFIX.length(), key.length() - SUFFIX.length());
 
-                  Long pttl = connection.keyCommands().pTtl(keyBytes);
+              Long pttl = connection.keyCommands().pTtl(keyBytes);
 
-                  byte[] oldValBytes =
-                          connection.stringCommands().getSet(keyBytes, "0".getBytes(StandardCharsets.UTF_8));
+              byte[] oldValBytes =
+                  connection
+                      .stringCommands()
+                      .getSet(keyBytes, "0".getBytes(StandardCharsets.UTF_8));
 
-                  long delta = 0L;
-                  if (oldValBytes != null) {
-                    try {
-                      delta = Long.parseLong(new String(oldValBytes, StandardCharsets.UTF_8));
-                    } catch (NumberFormatException ignored) {
-                    }
-                  }
-
-                  if (pttl != null && pttl > 0) {
-                    connection.keyCommands().pExpire(keyBytes, pttl);
-                  } else {
-                    connection.keyCommands().pExpire(keyBytes, RESET_TTL_MS);
-                  }
-
-                  if (delta > 0) {
-                    popupTotalViewCountRepository.upsertAdd(uuid, delta);
-                  }
+              long delta = 0L;
+              if (oldValBytes != null) {
+                try {
+                  delta = Long.parseLong(new String(oldValBytes, StandardCharsets.UTF_8));
+                } catch (NumberFormatException ignored) {
                 }
               }
-              return null;
-            });
+
+              if (pttl != null && pttl > 0) {
+                connection.keyCommands().pExpire(keyBytes, pttl);
+              } else {
+                connection.keyCommands().pExpire(keyBytes, RESET_TTL_MS);
+              }
+
+              if (delta > 0) {
+                popupTotalViewCountRepository.upsertAdd(uuid, delta);
+              }
+            }
+          }
+          return null;
+        });
   }
 
   // 1초마다: fallback buffer -> fallback 테이블 bulk insert
@@ -119,13 +120,15 @@ public class PopupTotalViewCountFlushService {
     while (true) {
       String batchId = UUID.randomUUID().toString();
 
-      int claimed = fallbackDeltaRepository.claimBatch(batchId, currentMinute, FALLBACK_MERGE_CLAIM_LIMIT);
+      int claimed =
+          fallbackDeltaRepository.claimBatch(batchId, currentMinute, FALLBACK_MERGE_CLAIM_LIMIT);
       if (claimed == 0) break;
 
-      txTemplate.executeWithoutResult(status -> {
-        fallbackDeltaRepository.mergeBatchToTotalViewCount(batchId);
-        fallbackDeltaRepository.markProcessed(batchId);
-      });
+      txTemplate.executeWithoutResult(
+          status -> {
+            fallbackDeltaRepository.mergeBatchToTotalViewCount(batchId);
+            fallbackDeltaRepository.markProcessed(batchId);
+          });
     }
 
     fallbackDeltaRepository.deleteProcessedOlderThanHours(CLEANUP_PROCESSED_HOURS);

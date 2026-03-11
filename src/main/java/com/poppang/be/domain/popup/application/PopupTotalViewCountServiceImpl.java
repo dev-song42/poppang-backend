@@ -24,11 +24,10 @@ public class PopupTotalViewCountServiceImpl implements PopupTotalViewCountServic
   private static final Duration TTL = Duration.ofSeconds(70);
 
   public PopupTotalViewCountServiceImpl(
-          RedisTemplate<String, String> redisTemplate,
-          PopupTotalViewCountRepository popupTotalViewCountRepository,
-          PopupTotalViewFallbackBuffer fallbackBuffer,
-          CircuitBreakerRegistry circuitBreakerRegistry
-  ) {
+      RedisTemplate<String, String> redisTemplate,
+      PopupTotalViewCountRepository popupTotalViewCountRepository,
+      PopupTotalViewFallbackBuffer fallbackBuffer,
+      CircuitBreakerRegistry circuitBreakerRegistry) {
     this.redisTemplate = redisTemplate;
     this.popupTotalViewCountRepository = popupTotalViewCountRepository;
     this.fallbackBuffer = fallbackBuffer;
@@ -41,7 +40,7 @@ public class PopupTotalViewCountServiceImpl implements PopupTotalViewCountServic
 
     try {
       Long after =
-              redisIncrCircuitBreaker.executeSupplier(() -> redisTemplate.opsForValue().increment(key));
+          redisIncrCircuitBreaker.executeSupplier(() -> redisTemplate.opsForValue().increment(key));
 
       if (after == null) {
         fallbackBuffer.increment(popupUuid);
@@ -54,7 +53,8 @@ public class PopupTotalViewCountServiceImpl implements PopupTotalViewCountServic
         if (expireSec == null || expireSec <= 0) {
           redisTemplate.expire(key, TTL);
         }
-      } catch (Exception ignored) {}
+      } catch (Exception ignored) {
+      }
 
       return after;
 

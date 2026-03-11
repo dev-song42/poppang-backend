@@ -2,6 +2,7 @@ package com.poppang.be.common.config;
 
 import io.lettuce.core.ClientOptions;
 import io.lettuce.core.SocketOptions;
+import java.time.Duration;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -12,8 +13,6 @@ import org.springframework.data.redis.connection.lettuce.LettuceClientConfigurat
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
-
-import java.time.Duration;
 
 @Configuration
 public class RedisConfig {
@@ -40,15 +39,12 @@ public class RedisConfig {
     configuration.setPort(port);
     configuration.setPassword(RedisPassword.of(password));
 
-    SocketOptions socketOptions = SocketOptions.builder()
-            .connectTimeout(connectTimeout)
-            .build();
+    SocketOptions socketOptions = SocketOptions.builder().connectTimeout(connectTimeout).build();
 
-    ClientOptions clientOptions = ClientOptions.builder()
-            .socketOptions(socketOptions)
-            .build();
+    ClientOptions clientOptions = ClientOptions.builder().socketOptions(socketOptions).build();
 
-    LettuceClientConfiguration clientConfiguration = LettuceClientConfiguration.builder()
+    LettuceClientConfiguration clientConfiguration =
+        LettuceClientConfiguration.builder()
             .clientOptions(clientOptions)
             .commandTimeout(commandTimeout)
             .build();
