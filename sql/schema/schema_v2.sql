@@ -1,6 +1,6 @@
 -- =========================================================
--- PopPang schema (MySQL) - PURE (No explicit secondary indexes)
--- Purpose: Performance experiments (insert/select) baseline
+-- PopPang schema v2 (MySQL) - PURE (No explicit secondary indexes)
+-- Purpose: Performance experiments (insert/select) baseline for latest schema
 -- Notes:
 --  - Removed explicit non-unique secondary indexes (KEY ...)
 --  - Keeps PK, UNIQUE constraints, FKs, defaults, engine/charset/collation
@@ -61,6 +61,15 @@ CREATE TABLE `users` (
                          UNIQUE KEY `uq_users_uuid` (`uuid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
+CREATE TABLE `popular_view_snapshot` (
+                                         `snapshot_id` bigint NOT NULL,
+                                         `popup_id` bigint NOT NULL,
+                                         `view_count_snapshot` bigint NOT NULL,
+                                         `generated_at` datetime(3) NOT NULL,
+                                         `expire_at` datetime(3) NOT NULL,
+                                         PRIMARY KEY (`snapshot_id`,`popup_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
 CREATE TABLE `popup_image` (
                                `id` bigint NOT NULL AUTO_INCREMENT,
                                `popup_id` bigint NOT NULL,
@@ -109,6 +118,19 @@ CREATE TABLE `popup_total_view_count` (
                                               FOREIGN KEY (`popup_uuid`) REFERENCES `popup` (`uuid`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
+CREATE TABLE `popup_view_fallback_delta` (
+                                             `id` bigint NOT NULL AUTO_INCREMENT,
+                                             `minute_bucket` datetime NOT NULL,
+                                             `popup_uuid` varchar(36) NOT NULL,
+                                             `writer_shard` smallint NOT NULL,
+                                             `delta` int NOT NULL,
+                                             `created_at` datetime(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+                                             `batch_id` char(36) DEFAULT NULL,
+                                             `claimed_at` datetime(3) DEFAULT NULL,
+                                             `processed_at` datetime(3) DEFAULT NULL,
+                                             PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
 CREATE TABLE `user_alert` (
                               `id` bigint NOT NULL AUTO_INCREMENT,
                               `users_id` bigint NOT NULL,
@@ -138,7 +160,7 @@ CREATE TABLE `user_favorite` (
                                  `users_id` bigint NOT NULL,
                                  `popup_id` bigint NOT NULL,
                                  PRIMARY KEY (`id`),
-                                 UNIQUE KEY `uq_user_favorite` (`users_id`, `popup_id`),
+                                 UNIQUE KEY `uq_user_favorite` (`users_id`,`popup_id`),
                                  CONSTRAINT `fk_user_favorite__popup`
                                      FOREIGN KEY (`popup_id`) REFERENCES `popup` (`id`) ON DELETE CASCADE,
                                  CONSTRAINT `fk_user_favorite__user`
